@@ -91,14 +91,10 @@ function checksCreator(dataPers,checkboxContainer) {
 }
 function searchEventText(text, events) {
     let eventsFilterText = events.filter(event => {
-        for (const property in event) {
-            const element = event[property].toString().toLowerCase()
-            if (element.includes(text.toLowerCase())) {
-                return true
-            } 
-        }
-        return false
-    })
+        let name = event.name.toString().toLowerCase()
+        let description = event.description.toString().toLowerCase()
+        return name.includes(text.toLowerCase()) || description.includes(text.toLowerCase())
+        })
     return eventsFilterText
 }
 function searchEventCategory(categories, events) {
@@ -119,7 +115,7 @@ function printFilterCards(inputsContainer,dataInit) {
     let eventsFilterCategory = searchEventCategory(categories, eventsFilterText)
     renderCards (dataFiltered,eventsFilterCategory)
     if (!cardCarouselInner.innerHTML) {
-        cardCarouselInner.innerHTML = `<h3 class="title">No se encontro ningun resultado para su busqueda</h3>`
+        cardCarouselInner.innerHTML = `<h3 class="title">no events found</h3>`
     }
 }
 function renderCards (data,events) {
@@ -132,19 +128,19 @@ function formSearchEvents(dataInit) {
     checkboxContainer.innerHTML = checksCreator(dataInit,checkboxContainer)
     let checks = Array.from(document.getElementsByClassName("form-check-input"))
     const checkContainers = Array.from(document.getElementsByClassName("form-check"))
-    //Filtro de Busqueda
+    //Search filter
     let formSearch = document.forms[0]
+    formSearch.addEventListener("submit", e=> e.preventDefault())
     let inputsContainer = Array.from(formSearch[0].children)
     let ckeckAllCategories = inputsContainer.shift()
     ckeckAllCategories = ckeckAllCategories.firstElementChild
     checkboxContainer.addEventListener("change", () => {
         printFilterCards(inputsContainer,dataInit)
     })
-    formSearch.addEventListener("submit", e => { 
-        e.preventDefault()
+    document.getElementById("inputSearch").addEventListener("keyup", e => { 
         printFilterCards(inputsContainer,dataInit)
     })
-    // Checkboxes Ternario
+    // Checkboxes color
     checkContainers.forEach((checkContainer,index) => {
         const check = checks[index]
         checkContainer.addEventListener("change", e => {
@@ -247,9 +243,17 @@ function renderDetails (dataInit) {
 }
 //STATS
 
-function renderStats(dataInit) {
+async function renderStats(dataInit) {
     
 }
+async function eventsStatistics(events) {
+    let highAttendance = []
+    let lowAttendance = []
+    let largestCapacity = []
+    
+}
+const percentageOfAttndce = (event,attendance) => percentage = ((event[attendance] / event.capacity) * 100).toFixed(2)
+
 //----------
 async function getDataEvents() {
     try {
@@ -267,7 +271,9 @@ async function renderPage() {
             renderDetails(dataInit)
             break;
         case "Stats":
+            // renderStats(dataInit)
             console.log("Stats Page")
+            console.log(percentageOfAttndce(dataInit.events[0],"assistance"))
             break;
         default:
             renderCards(dataInit, dataInit.events);

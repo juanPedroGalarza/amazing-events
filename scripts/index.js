@@ -243,9 +243,17 @@ function renderDetails (dataInit) {
 }
 //STATS
 
-function renderStats(dataInit) {
+async function renderStats(dataInit) {
     
 }
+async function eventsStatistics(events) {
+    let highAttendance = []
+    let lowAttendance = []
+    let largestCapacity = []
+    
+}
+const percentageOfAttndce = (event,attendance) => percentage = ((event[attendance] / event.capacity) * 100).toFixed(2)
+
 //----------
 async function getDataEvents() {
     try {
@@ -263,7 +271,9 @@ async function renderPage() {
             renderDetails(dataInit)
             break;
         case "Stats":
+            // renderStats(dataInit)
             console.log("Stats Page")
+            console.log(percentageOfAttndce(dataInit.events[0],"assistance"))
             break;
         default:
             renderCards(dataInit, dataInit.events);

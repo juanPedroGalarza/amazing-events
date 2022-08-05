@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
     <link rel="shortcut icon" href="./assets/img/favicon.png" type="image/x-icon">
     <link rel="stylesheet" href="./assets/styles/style.css">
-    <title>Home</title>
+    <title>Details</title>
 </head>
 <body>
     <header>
@@ -16,17 +16,17 @@
             <div class="container-fluid flex-column align-items-start flex-lg-row gap-3 gap-lg-0">
                 <img src="./assets/img/Logo-Amazing-Events.png" alt="logo" class="logo">
                 <button class="navbar-toggler btn-menu-cont" type="button" data-bs-toggle="offcanvas" data-bs-target="#navbarOffcanvasLg" aria-controls="navbarOffcanvasLg">
-                <span class="bi bi-list btn-menu"></span>
+                    <span class="bi bi-list btn-menu"></span>
                 </button>
-                <div class="offcanvas offcanvas-start d-lg-flex flex-grow-0 text-bg-dark" tabindex="-1" id="navbarOffcanvasLg" aria-labelledby="navbarOffcanvasLg">
+                <div class="offcanvas offcanvas-start text-bg-dark d-lg-flex flex-grow-0" tabindex="-1" id="navbarOffcanvasLg" aria-labelledby="navbarOffcanvasLg">
                     <div class="offcanvas-header">
                         <img src="./assets/img/Logo-Amazing-Events.png" alt="logo" class="logo">
                         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                     </div>
                     <div class="offcanvas-body">
                         <ul class="navbar-nav nav-tabs mb-2 mb-lg-0 flex-column flex-lg-row navbar-dark gap-1">
-                            <li class="nav-item ">
-                                <a class="nav-link active text-dark" aria-current="page" href="#">Home</a>
+                            <li class="nav-item">
+                                <a class="nav-link" href="./index.html">Home</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="./upcoming_events.html">Upcoming Events</a>
@@ -45,45 +45,9 @@
                 </div>
             </div>
         </nav>
-        <div class="carousel w-100 nav2">
-            <div class="carousel-inner">
-                <h1 class="title">Home</h1>
-            </div>
-            <a class="carousel-control-prev" href="./stats.html">
-                <span class="bi bi-chevron-bar-left"></span>
-            </a>
-            <a class="carousel-control-next" href="./upcoming_events.html">
-                <span class="bi bi-chevron-bar-right"></span>
-            </a>
-        </div>
+        <div class="carousel w-100 nav2" id="navDetails"></div>
     </header>
-    <main class="main-style">
-        <form class="d-lg-flex container-fluid justify-content-between align-items-baseline flex-column flex-lg-row mb-3" action="#" role="search" id="search">
-            <fieldset id="checksContainer" class="d-flex flex-wrap justify-content-lg-around justify-content-evenly align-items-center flex-lg-grow-2 gap-3 gap-lg-0">
-                <div class="form-check d-flex justify-content-center gap-lg-1 checked">
-                    <input type="checkbox" name="category" id="allCategories" class="form-check-input" value="All" checked="check">
-                    <label class="form-check-label fs-7" for="allCategories">All</label>
-                </div>
-            </fieldset>
-            <fieldset class="row justify-content-center mt-3 mt-lg-0">
-                <input class="col-9 buscador form-control-sm" type="search" placeholder="Search" aria-label="Search" id="inputSearch">
-                <button class="btn btn-outline-success col-1" type="submit">
-                    <span class="bi bi-search"></span>
-                </button>
-            </fieldset>
-        </form>
-        <div class="conainer-fluid justify-content-center row me-0">
-            <div id="cardCarousel" class="container-fluid carousel slide justify-content-center row">
-                <button class="carousel-control-prev justify-content-start position-static d-flex col-6" type="button" data-bs-target="#cardCarousel" data-bs-slide="prev">
-                    <span class="bi bi-caret-left-fill"></span>
-                </button>
-                <div class="cardsIndicators carousel-indicators" id="cardsIndicators"></div>
-                <button class="carousel-control-next justify-content-end position-static d-flex col-6" type="button" data-bs-target="#cardCarousel" data-bs-slide="next">
-                    <span class="bi bi-caret-right-fill"></span>
-                </button>
-                <div class="carousel-inner p-lg-4 p-1" id="cardCarouselInner"></div>
-            </div>
-        </div>
+    <main id="mainDetails" class="main-style d-flex me-0 justify-content-center p-0 pt-3">
     </main>
     <footer class="container-fluid footer-style">
         <div class="row footer-logos">

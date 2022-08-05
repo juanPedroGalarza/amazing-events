@@ -119,7 +119,7 @@ function printFilterCards(inputsContainer,dataInit) {
     let eventsFilterCategory = searchEventCategory(categories, eventsFilterText)
     renderCards (dataFiltered,eventsFilterCategory)
     if (!cardCarouselInner.innerHTML) {
-        cardCarouselInner.innerHTML = `<h3 class="title">No se encontro ningun resultado para su busqueda</h3>`
+        cardCarouselInner.innerHTML = `<h3 class="title">no events found</h3>`
     }
 }
 function renderCards (data,events) {

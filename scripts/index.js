@@ -91,14 +91,10 @@ function checksCreator(dataPers,checkboxContainer) {
 }
 function searchEventText(text, events) {
     let eventsFilterText = events.filter(event => {
-        for (const property in event) {
-            const element = event[property].toString().toLowerCase()
-            if (element.includes(text.toLowerCase())) {
-                return true
-            } 
-        }
-        return false
-    })
+        let name = event.name.toString().toLowerCase()
+        let description = event.description.toString().toLowerCase()
+        return name.includes(text.toLowerCase()) || description.includes(text.toLowerCase())
+        })
     return eventsFilterText
 }
 function searchEventCategory(categories, events) {
@@ -132,19 +128,19 @@ function formSearchEvents(dataInit) {
     checkboxContainer.innerHTML = checksCreator(dataInit,checkboxContainer)
     let checks = Array.from(document.getElementsByClassName("form-check-input"))
     const checkContainers = Array.from(document.getElementsByClassName("form-check"))
-    //Filtro de Busqueda
+    //Search filter
     let formSearch = document.forms[0]
+    formSearch.addEventListener("submit", e=> e.preventDefault())
     let inputsContainer = Array.from(formSearch[0].children)
     let ckeckAllCategories = inputsContainer.shift()
     ckeckAllCategories = ckeckAllCategories.firstElementChild
     checkboxContainer.addEventListener("change", () => {
         printFilterCards(inputsContainer,dataInit)
     })
-    formSearch.addEventListener("submit", e => { 
-        e.preventDefault()
+    document.getElementById("inputSearch").addEventListener("keyup", e => { 
         printFilterCards(inputsContainer,dataInit)
     })
-    // Checkboxes Ternario
+    // Checkboxes color
     checkContainers.forEach((checkContainer,index) => {
         const check = checks[index]
         checkContainer.addEventListener("change", e => {

@@ -224,6 +224,10 @@ button.btn-outline-success:hover{
     text-shadow: 1px 1px 10px rgb(34,79,121);
 }
 /* Stats */
+.tableContainer{
+    padding-left: 0;
+    padding-right: 0;
+}
 .stats-table{
     color: azure;
     border-collapse: separate;
@@ -356,6 +360,10 @@ background: radial-gradient(circle, rgba(32,60,87,1) 0%, rgba(0,28,55,1) 100%);
     img.img-details{
         border: none;
         border-bottom: none;
+    }
+    .tableContainer{
+        padding-left: 10px;
+        padding-right: 10px;
     }
 }
 

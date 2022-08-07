@@ -1,24 +1,30 @@
-function filterPageCards(events,currentDate, title) {
+const percentageOfAttndce = (event) => {
+    let attendance
+    event.hasOwnProperty("assistance") ?
+    attendance = "assistance" : attendance = "estimate"
+    return parseFloat(((event[attendance] / event.capacity) * 100).toFixed(2))
+}
+function filterPageCards(events, currentDate, title) {
     switch (title) {
         case "Past Events":
-            events = events.filter(event => timeCard(currentDate,event))
+            events = events.filter(event => timeEvent(currentDate,event))
             break;
         case "Upcoming Events":
-            events = events.filter(event => !timeCard(currentDate,event))
+            events = events.filter(event => !timeEvent(currentDate,event))
             break;
         default:
             break;
     }
     return events
 }
-function timeCard(date, event) {
+function timeEvent(date, event) {
     let actualDAte = new Date(date)
     let eventDate = new Date(event.date)
     return actualDAte.getTime() > eventDate.getTime()
 }
 function createCard (currentDate, event) {
     let card = document.createElement("div")
-    let pastOrUp = timeCard(currentDate, event)
+    let pastOrUp = timeEvent(currentDate, event)
     pastOrUp? pastOrUp = ["e-past","btn-past"]: pastOrUp = ["e-upcoming","btn-upcoming"]
     card.className = `card col-10 col-md-5 col-lg-4 col-xl-2 event-card p-0 ${pastOrUp[0]}`
     card.id = event._id
@@ -76,9 +82,14 @@ const indicatorCreator = (CarouselInner)=>{
     }
     return indicators.innerHTML
 }
-function checksCreator(dataPers,checkboxContainer) {
-    let allCategories = dataPers.events.map(event => event.category)
+function filterCategories(events) {
+    let allCategories = events.map(event => event.category)
     allCategories = allCategories.filter((value, index, array) => array.indexOf(value) === index)
+    return allCategories
+}
+function checksCreator(dataPers, checkboxContainer) {
+    let events = filterPageCards(dataPers.events, dataPers.currentDate, document.title)
+    let allCategories = filterCategories(events)
     allCategories.forEach(category => {
         let checkbox = document.createElement("div")
         checkbox.className = "form-check d-flex justify-content-center gap-lg-1"
@@ -171,7 +182,7 @@ function formSearchEvents(dataInit) {
 function createCardDetails(id,dataInit) {
     let eventInfo = dataInit.events.find(event => event._id == id)
     let card = document.createElement("div")
-    let pastOrUp = timeCard(dataInit.currentDate, eventInfo)
+    let pastOrUp = timeEvent(dataInit.currentDate, eventInfo)
     pastOrUp? pastOrUp = ["e-past","Assistance"]: pastOrUp = ["e-upcoming","Estimate"]
     card.className = `container-xl d-flex card flex-row flex-wrap mb-4 p-0 ${pastOrUp[0]} event-card m-md-5 m-lg-0 mb-lg-4 align-items-center`
     card.innerHTML =
@@ -242,18 +253,114 @@ function renderDetails (dataInit) {
     mainDetails.appendChild(createCardDetails(id,dataInit))
 }
 //STATS
-
 async function renderStats(dataInit) {
-    
+    await createTableStats(document.getElementById("tableStats1"),dataInit)
+    await createTableStatsCatg(document.getElementById("tableStats2"), dataInit,false)
+    await createTableStatsCatg(document.getElementById("tableStats3"), dataInit,true)
+}
+function pluralStringArray(str, separator) {
+    let array
+    separator? array = str.split(separator): array = str
+    if (array.length > 1) {
+        return "s"
+    }
+    return ""
+}
+async function highLowAttndce(comparator, events) {
+    let assistance
+    comparator == " > "? assistance = 1: assistance = 1000
+    let res = await events.reduce((selecteds, event) => {
+        let percentageEvent = percentageOfAttndce(event)
+        let percentageSel = percentageOfAttndce(selecteds[0])
+        if (percentageEvent == percentageSel) {
+            selecteds.push(event)
+        } else if(eval(percentageEvent + comparator + percentageSel)){
+            selecteds = [event]
+        }
+        return selecteds
+    },[{assistance:assistance,capacity:1000}])
+    return res
 }
 async function eventsStatistics(events) {
-    let highAttendance = []
-    let lowAttendance = []
-    let largestCapacity = []
-    
+    let highAttendance = await highLowAttndce(" > ", events)
+    let highPercentage = percentageOfAttndce(highAttendance[0])
+    highAttendance = await highAttendance.map(event => event.name).join(", ")
+    let lowAttendance = await highLowAttndce(" < ", events)
+    let lowPercentage = percentageOfAttndce(lowAttendance[0])
+    lowAttendance = await lowAttendance.map(event => event.name).join(", ")
+    let largestCapacity = await events.reduce((prevEvent, event) => {
+        if (parseInt(event.capacity) > parseInt(prevEvent.capacity)) {
+            return event
+        }
+        return prevEvent
+    })
+    return {high:highAttendance,highPer:highPercentage,low:lowAttendance,lowPer:lowPercentage,largest:largestCapacity}
 }
-const percentageOfAttndce = (event,attendance) => percentage = ((event[attendance] / event.capacity) * 100).toFixed(2)
-
+async function createTableStats(tbody, data) {
+    let eventsSelected = await eventsStatistics(data.events)
+    let tableRowTitles = document.createElement("tr")
+    let plural1 = pluralStringArray(eventsSelected.high,",")
+    let plural2 = pluralStringArray(eventsSelected.low,",")
+    let plural3 = pluralStringArray([eventsSelected.largest],false)
+    tableRowTitles.innerHTML =
+    `<td class="stats-dt fs-7">
+        <p>Event${plural1} width the highest percntage of attendance</p>
+    </td>
+    <td class="stats-dt fs-7">
+        <p>Event${plural2} width the lowest percntage of attendance</p>
+    </td>
+    <td class="stats-dt fs-7">
+        <p>Event${plural3} width largest capacity</p>
+    </td>`
+    tbody.appendChild(tableRowTitles)
+    let tableRowStats = document.createElement("tr")
+    tableRowStats.innerHTML =
+    `<td class="stats-dt fs-7">${eventsSelected.high}: ${eventsSelected.highPer}%</td>
+    <td class="stats-dt fs-7">${eventsSelected.low}: ${eventsSelected.lowPer}%</td>
+    <td class="stats-dt fs-7">${eventsSelected.largest.name}: ${eventsSelected.largest.capacity}</td>`
+    tbody.appendChild(tableRowStats)
+}
+async function eventsStatisticsCatg(data, pastOrUp) {
+    let eventsSelected
+    pastOrUp ? eventsSelected = data.events.filter(event => timeEvent(data.currentDate, event))
+    : eventsSelected = data.events.filter(event => !timeEvent(data.currentDate, event))
+    let categories = filterCategories(eventsSelected)
+    let revenues = []
+    let categoriesPer = []
+    let attendance
+    pastOrUp? attendance = "assistance": attendance = "estimate"
+    categories.forEach(category => {
+        let categoryRevenues = eventsSelected.reduce((revenues, event) => { 
+            if (event.category.toLowerCase() == category.toLowerCase()) {
+                revenues += parseInt(event[attendance]) * event.price
+            }
+            return revenues
+    }, 0)
+        revenues.push(categoryRevenues)
+        let eventsCount = 0
+        let categoryPer = eventsSelected.reduce((percentage, event) => {
+            if (event.category.toLowerCase() == category.toLowerCase()) {
+                eventsCount++
+                percentage += percentageOfAttndce(event)
+            }
+            return percentage
+        }, 0)
+        categoryPer = (categoryPer / eventsCount).toFixed(2)
+        categoriesPer.push(categoryPer)
+    })
+    return {categories:categories,revenues:revenues,percentage:categoriesPer}
+}
+async function createTableStatsCatg(tbody, data,pastOrUp) {
+    let categoriesSelected = await eventsStatisticsCatg(data, pastOrUp)
+    categoriesSelected.categories.forEach((category, index) => {
+        let tableRow = document.createElement("tr")
+        tableRow.innerHTML =
+            `<td class="stats-dt fs-7">${category}</td>
+            <td class="stats-dt fs-7">$${categoriesSelected.revenues[index]}</td>
+            <td class="stats-dt fs-7">${categoriesSelected.percentage[index]}%</td>`
+        tbody.appendChild(tableRow)
+    })
+}
 //----------
 async function getDataEvents() {
     try {
@@ -271,9 +378,7 @@ async function renderPage() {
             renderDetails(dataInit)
             break;
         case "Stats":
-            // renderStats(dataInit)
-            console.log("Stats Page")
-            console.log(percentageOfAttndce(dataInit.events[0],"assistance"))
+            renderStats(dataInit)
             break;
         default:
             renderCards(dataInit, dataInit.events);

@@ -329,10 +329,10 @@ async function createTableStats(tbody, data) {
     let plural3 = pluralStringArray([eventsSelected.largest],false)
     tableRowTitles.innerHTML =
     `<td class="stats-dt fs-7">
-        <p>Event${plural1} width the highest percntage of attendance</p>
+        <p>Event${plural1} width the highest percentage of attendance</p>
     </td>
     <td class="stats-dt fs-7">
-        <p>Event${plural2} width the lowest percntage of attendance</p>
+        <p>Event${plural2} width the lowest percentage of attendance</p>
     </td>
     <td class="stats-dt fs-7">
         <p>Event${plural3} width largest capacity</p>

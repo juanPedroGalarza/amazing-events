@@ -134,6 +134,10 @@ function renderCards (data,events) {
     cardsIndicators.innerHTML = indicatorCreator(cardCarouselInner)
 }
 function formSearchEvents(dataInit) {
+    //localStorage
+    let checkedCategories = JSON.parse(localStorage.getItem("categories"))
+    checkedCategories??= []
+    let searchText = localStorage.getItem("searchText")
     //CHECKBOXES
     const checkboxContainer = document.getElementById("checksContainer")
     checkboxContainer.innerHTML = checksCreator(dataInit,checkboxContainer)
@@ -146,9 +150,21 @@ function formSearchEvents(dataInit) {
     let ckeckAllCategories = inputsContainer.shift()
     ckeckAllCategories = ckeckAllCategories.firstElementChild
     checkboxContainer.addEventListener("change", () => {
+        checks.forEach(check => {
+            check.checked ?
+                checkedCategories.push(check.value.toLowerCase()) :
+                checkedCategories = checkedCategories.filter(category => {
+                    return category != check.value.toLowerCase()
+                })
+        })
+        localStorage.setItem("categories",JSON.stringify(checkedCategories))
+            console.log(JSON.stringify(checkedCategories))
         printFilterCards(inputsContainer,dataInit)
     })
-    document.getElementById("inputSearch").addEventListener("keyup", e => { 
+    let search = document.getElementById("inputSearch")
+    search.addEventListener("keyup", e => {
+        searchText = e.target.value
+        localStorage.setItem("searchText",searchText)
         printFilterCards(inputsContainer,dataInit)
     })
     // Checkboxes color
@@ -177,6 +193,15 @@ function formSearchEvents(dataInit) {
             ckeckAllCategories.checked = true
         }
     })
+    if (checkedCategories && checkedCategories != ["all"] || searchText) {
+        setLocalValues(checks, checkedCategories, search, searchText)
+        printFilterCards(inputsContainer,dataInit)
+    } else {
+        localStorage.setItem("checkedCategories", JSON.stringify([]))
+        localStorage.setItem("searchText", "")
+        checkedCategories = JSON.parse(localStorage.getItem("categories"))
+        searchText = localStorage.getItem("searchText")
+    }
 }
 //DETAILS
 function createCardDetails(id,dataInit) {
@@ -360,6 +385,20 @@ async function createTableStatsCatg(tbody, data,pastOrUp) {
             <td class="stats-dt fs-7">${categoriesSelected.percentage[index]}%</td>`
         tbody.appendChild(tableRow)
     })
+}
+//Local Storage
+async function setLocalValues(checks,checkedCategories, search,searchText) {
+    if(checkedCategories.length > 0){
+        checks.forEach(check => {
+            checkedCategories.includes(check.value.toLowerCase()) ?
+                check.checked = true :
+                check.checked = false
+        })
+        if(checks.every(check=> !check.checked)){checks[0].checked=true}
+    }
+    if (searchText) {
+        search.value = searchText
+    }
 }
 //----------
 async function getDataEvents() {

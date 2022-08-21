@@ -44,7 +44,7 @@ function createCard (currentDate, event) {
 }
 function createSlide(slideX, index, currentDate, events) {
     let cardContainer = document.createElement("div")
-    cardContainer.className = "row justify-content-evenly align-items-start gap-4 gap-xl-0"
+    cardContainer.className = "row justify-content-evenly align-items-strech gap-4 gap-xl-0"
     index *= 4
     events.forEach((event, i) => {
         if (i < index + 4 && i > index -1) {

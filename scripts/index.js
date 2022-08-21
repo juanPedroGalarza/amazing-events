@@ -280,8 +280,8 @@ function renderDetails (dataInit) {
 //STATS
 async function renderStats(dataInit) {
     await createTableStats(document.getElementById("tableStats1"),dataInit)
-    await createTableStatsCatg(document.getElementById("tableStats2"), dataInit,false)
-    await createTableStatsCatg(document.getElementById("tableStats3"), dataInit,true)
+    await createTableStatsCatg(document.getElementById("tableStats2"), dataInit.events.filter(event => !pastEvent(dataInit.currentDate, event)),dataInit.currentDate)
+    await createTableStatsCatg(document.getElementById("tableStats3"), dataInit.events.filter(event => pastEvent(dataInit.currentDate, event)),dataInit.currentDate)
 }
 function pluralStringArray(str, separator) {
     let array
@@ -345,17 +345,14 @@ async function createTableStats(tbody, data) {
     <td class="stats-dt fs-7">${eventsSelected.largest.name}: ${eventsSelected.largest.capacity}</td>`
     tbody.appendChild(tableRowStats)
 }
-async function eventsStatisticsCatg(data, pastOrUp) {
-    let eventsSelected
-    pastOrUp ? eventsSelected = data.events.filter(event => pastEvent(data.currentDate, event))
-    : eventsSelected = data.events.filter(event => !pastEvent(data.currentDate, event))
-    let categories = filterCategories(eventsSelected)
+async function eventsStatisticsCatg(events,currentDate) {
+    let categories = filterCategories(events)
     let revenues = []
     let categoriesPer = []
     let attendance
-    pastOrUp? attendance = "assistance": attendance = "estimate"
+    pastEvent(currentDate,events[0])? attendance = "assistance": attendance = "estimate"
     categories.forEach(category => {
-        let categoryRevenues = eventsSelected.reduce((revenues, event) => { 
+        let categoryRevenues = events.reduce((revenues, event) => { 
             if (event.category.toLowerCase() == category.toLowerCase()) {
                 revenues += parseInt(event[attendance]) * event.price
             }
@@ -363,7 +360,7 @@ async function eventsStatisticsCatg(data, pastOrUp) {
     }, 0)
         revenues.push(categoryRevenues)
         let eventsCount = 0
-        let categoryPer = eventsSelected.reduce((percentage, event) => {
+        let categoryPer = events.reduce((percentage, event) => {
             if (event.category.toLowerCase() == category.toLowerCase()) {
                 eventsCount++
                 percentage += percentageOfAttndce(event)
@@ -375,8 +372,8 @@ async function eventsStatisticsCatg(data, pastOrUp) {
     })
     return {categories:categories,revenues:revenues,percentage:categoriesPer}
 }
-async function createTableStatsCatg(tbody, data,pastOrUp) {
-    let categoriesSelected = await eventsStatisticsCatg(data, pastOrUp)
+async function createTableStatsCatg(tbody, events,currentDate) {
+    let categoriesSelected = await eventsStatisticsCatg(events,currentDate)
     categoriesSelected.categories.forEach((category, index) => {
         let tableRow = document.createElement("tr")
         tableRow.innerHTML =

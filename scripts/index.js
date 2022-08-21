@@ -7,24 +7,24 @@ const percentageOfAttndce = (event) => {
 function filterPageCards(events, currentDate, title) {
     switch (title) {
         case "Past Events":
-            events = events.filter(event => timeEvent(currentDate,event))
+            events = events.filter(event => pastEvent(currentDate,event))
             break;
         case "Upcoming Events":
-            events = events.filter(event => !timeEvent(currentDate,event))
+            events = events.filter(event => !pastEvent(currentDate,event))
             break;
         default:
             break;
     }
     return events
 }
-function timeEvent(date, event) {
+function pastEvent(date, event) {
     let actualDAte = new Date(date)
     let eventDate = new Date(event.date)
     return actualDAte.getTime() > eventDate.getTime()
 }
 function createCard (currentDate, event) {
     let card = document.createElement("div")
-    let pastOrUp = timeEvent(currentDate, event)
+    let pastOrUp = pastEvent(currentDate, event)
     pastOrUp? pastOrUp = ["e-past","btn-past"]: pastOrUp = ["e-upcoming","btn-upcoming"]
     card.className = `card col-10 col-md-5 col-lg-4 col-xl-2 event-card p-0 ${pastOrUp[0]}`
     card.id = event._id
@@ -42,7 +42,7 @@ function createCard (currentDate, event) {
     </div>`
     return card
 }
-function createSlides(slideX, index, currentDate, events) {
+function createSlide(slideX, index, currentDate, events) {
     let cardContainer = document.createElement("div")
     cardContainer.className = "row justify-content-evenly align-items-start gap-4 gap-xl-0"
     index *= 4
@@ -54,7 +54,7 @@ function createSlides(slideX, index, currentDate, events) {
     slideX.appendChild(cardContainer)
     return slideX
 }
-function createCards(dataPers, events) {
+function createCarousel(dataPers, events) {
     events = filterPageCards(events, dataPers.currentDate, document.title)
     let cardCarousel = document.createElement("div")
     let slidesContainer = events.filter((event, index) => index === 0 || index % 4 === 0)
@@ -66,7 +66,7 @@ function createCards(dataPers, events) {
         slideX.classList.add("carousel-item")
         slideX.id = `slideCard${index}`
         slidesContainer[index] = slideX
-        cardCarousel.appendChild(createSlides(slideX,index,dataPers.currentDate,events))
+        cardCarousel.appendChild(createSlide(slideX,index,dataPers.currentDate,events))
     }) 
     return cardCarousel.innerHTML
 }
@@ -130,7 +130,7 @@ function printFilterCards(inputsContainer,dataInit) {
     }
 }
 function renderCards (data,events) {
-    cardCarouselInner.innerHTML = createCards(data,events)
+    cardCarouselInner.innerHTML = createCarousel(data,events)
     cardsIndicators.innerHTML = indicatorCreator(cardCarouselInner)
 }
 function formSearchEvents(dataInit) {
@@ -207,7 +207,7 @@ function formSearchEvents(dataInit) {
 function createCardDetails(id,dataInit) {
     let eventInfo = dataInit.events.find(event => event._id == id)
     let card = document.createElement("div")
-    let pastOrUp = timeEvent(dataInit.currentDate, eventInfo)
+    let pastOrUp = pastEvent(dataInit.currentDate, eventInfo)
     pastOrUp? pastOrUp = ["e-past","Assistance"]: pastOrUp = ["e-upcoming","Estimate"]
     card.className = `container-xl d-flex card flex-row flex-wrap mb-4 p-0 ${pastOrUp[0]} event-card m-md-5 m-lg-0 mb-lg-4 align-items-center`
     card.innerHTML =
@@ -347,8 +347,8 @@ async function createTableStats(tbody, data) {
 }
 async function eventsStatisticsCatg(data, pastOrUp) {
     let eventsSelected
-    pastOrUp ? eventsSelected = data.events.filter(event => timeEvent(data.currentDate, event))
-    : eventsSelected = data.events.filter(event => !timeEvent(data.currentDate, event))
+    pastOrUp ? eventsSelected = data.events.filter(event => pastEvent(data.currentDate, event))
+    : eventsSelected = data.events.filter(event => !pastEvent(data.currentDate, event))
     let categories = filterCategories(eventsSelected)
     let revenues = []
     let categoriesPer = []

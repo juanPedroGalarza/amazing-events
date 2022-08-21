@@ -142,23 +142,34 @@ function formSearchEvents(dataInit) {
     const checkboxContainer = document.getElementById("checksContainer")
     checkboxContainer.innerHTML = checksCreator(dataInit,checkboxContainer)
     let checks = Array.from(document.getElementsByClassName("form-check-input"))
-    const checkContainers = Array.from(document.getElementsByClassName("form-check"))
     //Search filter
     let formSearch = document.forms[0]
     formSearch.addEventListener("submit", e=> e.preventDefault())
     let inputsContainer = Array.from(formSearch[0].children)
-    let ckeckAllCategories = inputsContainer.shift()
-    ckeckAllCategories = ckeckAllCategories.firstElementChild
-    checkboxContainer.addEventListener("change", () => {
+    inputsContainer.shift()
+    let ckeckAllCategories = checks.shift()
+    checkboxContainer.addEventListener("change", (e) => {
+        checkedCategories = []
+        if (e.target.value == "All") {
+            checks.forEach(check => check.checked = false)
+            ckeckAllCategories.parentElement.classList.add("checked")
+            ckeckAllCategories.checked = true
+        } else {
+            ckeckAllCategories.checked = false
+            ckeckAllCategories.parentElement.classList.remove("checked")
+        }
         checks.forEach(check => {
-            check.checked ?
-                checkedCategories.push(check.value.toLowerCase()) :
-                checkedCategories = checkedCategories.filter(category => {
-                    return category != check.value.toLowerCase()
-                })
+            if (check.checked) {
+                checkedCategories.push(check.value.toLowerCase())
+                check.parentElement.classList.add("checked")
+                return
+            }
+            checkedCategories = checkedCategories.filter(category => {
+                return category != check.value.toLowerCase()
+            })
+            check.parentElement.classList.remove("checked")
         })
         localStorage.setItem("categories",JSON.stringify(checkedCategories))
-            console.log(JSON.stringify(checkedCategories))
         printFilterCards(inputsContainer,dataInit)
     })
     let search = document.getElementById("inputSearch")
@@ -167,34 +178,8 @@ function formSearchEvents(dataInit) {
         localStorage.setItem("searchText",searchText)
         printFilterCards(inputsContainer,dataInit)
     })
-    // Checkboxes color
-    checkContainers.forEach((checkContainer,index) => {
-        const check = checks[index]
-        checkContainer.addEventListener("change", e => {
-            if (check.checked) {
-                e.target.parentElement.classList.add("checked")
-                return
-            }
-            e.target.parentElement.classList.remove("checked")
-        })
-    })
-    formSearch[0].addEventListener("click", e => {
-        if (e.target.name == "category") {
-            let checkboxTarget = e.target
-            if (checkboxTarget == ckeckAllCategories) {
-                checks.forEach(check => check.checked = false)
-                ckeckAllCategories.checked = true
-                return
-            }
-            if (checkContainers.some(checkContainer => checkContainer.firstElementChild.checked)) {
-                ckeckAllCategories.checked = false
-                return
-            }
-            ckeckAllCategories.checked = true
-        }
-    })
-    if (checkedCategories && checkedCategories != ["all"] || searchText) {
-        setLocalValues(checks, checkedCategories, search, searchText)
+    if (checkedCategories.length > 0 || searchText) {
+        setLocalValues(checks, ckeckAllCategories, checkedCategories, search, searchText)
         printFilterCards(inputsContainer,dataInit)
     } else {
         localStorage.setItem("checkedCategories", JSON.stringify([]))
@@ -384,14 +369,16 @@ async function createTableStatsCatg(tbody, events,currentDate) {
     })
 }
 //Local Storage
-async function setLocalValues(checks,checkedCategories, search,searchText) {
+async function setLocalValues(checks,checkAllCategories,checkedCategories, search,searchText) {
     if(checkedCategories.length > 0){
+        checkAllCategories.checked=false
         checks.forEach(check => {
             checkedCategories.includes(check.value.toLowerCase()) ?
                 check.checked = true :
                 check.checked = false
         })
-        if(checks.every(check=> !check.checked)){checks[0].checked=true}
+    } else {
+        checkAllCategories.checked=true
     }
     if (searchText) {
         search.value = searchText

@@ -78,7 +78,7 @@ const indicatorCreator = (CarouselInner)=>{
         if (i === 0) {
             atributos += ` class="active" aria-current="true"`
         }
-        indicators.innerHTML += `<button ${atributos}></button>`
+        indicators.innerHTML += `<button ${atributos}>${i + 1}</button>`
     }
     return indicators.innerHTML
 }

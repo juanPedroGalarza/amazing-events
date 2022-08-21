@@ -7,24 +7,24 @@ const percentageOfAttndce = (event) => {
 function filterPageCards(events, currentDate, title) {
     switch (title) {
         case "Past Events":
-            events = events.filter(event => timeEvent(currentDate,event))
+            events = events.filter(event => pastEvent(currentDate,event))
             break;
         case "Upcoming Events":
-            events = events.filter(event => !timeEvent(currentDate,event))
+            events = events.filter(event => !pastEvent(currentDate,event))
             break;
         default:
             break;
     }
     return events
 }
-function timeEvent(date, event) {
+function pastEvent(date, event) {
     let actualDAte = new Date(date)
     let eventDate = new Date(event.date)
     return actualDAte.getTime() > eventDate.getTime()
 }
 function createCard (currentDate, event) {
     let card = document.createElement("div")
-    let pastOrUp = timeEvent(currentDate, event)
+    let pastOrUp = pastEvent(currentDate, event)
     pastOrUp? pastOrUp = ["e-past","btn-past"]: pastOrUp = ["e-upcoming","btn-upcoming"]
     card.className = `card col-10 col-md-5 col-lg-4 col-xl-2 event-card p-0 ${pastOrUp[0]}`
     card.id = event._id
@@ -42,7 +42,7 @@ function createCard (currentDate, event) {
     </div>`
     return card
 }
-function createSlides(slideX, index, currentDate, events) {
+function createSlide(slideX, index, currentDate, events) {
     let cardContainer = document.createElement("div")
     cardContainer.className = "row justify-content-evenly align-items-start gap-4 gap-xl-0"
     index *= 4
@@ -54,7 +54,7 @@ function createSlides(slideX, index, currentDate, events) {
     slideX.appendChild(cardContainer)
     return slideX
 }
-function createCards(dataPers, events) {
+function createCarousel(dataPers, events) {
     events = filterPageCards(events, dataPers.currentDate, document.title)
     let cardCarousel = document.createElement("div")
     let slidesContainer = events.filter((event, index) => index === 0 || index % 4 === 0)
@@ -66,7 +66,7 @@ function createCards(dataPers, events) {
         slideX.classList.add("carousel-item")
         slideX.id = `slideCard${index}`
         slidesContainer[index] = slideX
-        cardCarousel.appendChild(createSlides(slideX,index,dataPers.currentDate,events))
+        cardCarousel.appendChild(createSlide(slideX,index,dataPers.currentDate,events))
     }) 
     return cardCarousel.innerHTML
 }
@@ -130,7 +130,7 @@ function printFilterCards(inputsContainer,dataInit) {
     }
 }
 function renderCards (data,events) {
-    cardCarouselInner.innerHTML = createCards(data,events)
+    cardCarouselInner.innerHTML = createCarousel(data,events)
     cardsIndicators.innerHTML = indicatorCreator(cardCarouselInner)
 }
 function formSearchEvents(dataInit) {
@@ -142,23 +142,34 @@ function formSearchEvents(dataInit) {
     const checkboxContainer = document.getElementById("checksContainer")
     checkboxContainer.innerHTML = checksCreator(dataInit,checkboxContainer)
     let checks = Array.from(document.getElementsByClassName("form-check-input"))
-    const checkContainers = Array.from(document.getElementsByClassName("form-check"))
     //Search filter
     let formSearch = document.forms[0]
     formSearch.addEventListener("submit", e=> e.preventDefault())
     let inputsContainer = Array.from(formSearch[0].children)
-    let ckeckAllCategories = inputsContainer.shift()
-    ckeckAllCategories = ckeckAllCategories.firstElementChild
-    checkboxContainer.addEventListener("change", () => {
+    inputsContainer.shift()
+    let ckeckAllCategories = checks.shift()
+    checkboxContainer.addEventListener("change", (e) => {
+        checkedCategories = []
+        if (e.target.value == "All") {
+            checks.forEach(check => check.checked = false)
+            ckeckAllCategories.parentElement.classList.add("checked")
+            ckeckAllCategories.checked = true
+        } else {
+            ckeckAllCategories.checked = false
+            ckeckAllCategories.parentElement.classList.remove("checked")
+        }
         checks.forEach(check => {
-            check.checked ?
-                checkedCategories.push(check.value.toLowerCase()) :
-                checkedCategories = checkedCategories.filter(category => {
-                    return category != check.value.toLowerCase()
-                })
+            if (check.checked) {
+                checkedCategories.push(check.value.toLowerCase())
+                check.parentElement.classList.add("checked")
+                return
+            }
+            checkedCategories = checkedCategories.filter(category => {
+                return category != check.value.toLowerCase()
+            })
+            check.parentElement.classList.remove("checked")
         })
         localStorage.setItem("categories",JSON.stringify(checkedCategories))
-            console.log(JSON.stringify(checkedCategories))
         printFilterCards(inputsContainer,dataInit)
     })
     let search = document.getElementById("inputSearch")
@@ -167,34 +178,8 @@ function formSearchEvents(dataInit) {
         localStorage.setItem("searchText",searchText)
         printFilterCards(inputsContainer,dataInit)
     })
-    // Checkboxes color
-    checkContainers.forEach((checkContainer,index) => {
-        const check = checks[index]
-        checkContainer.addEventListener("change", e => {
-            if (check.checked) {
-                e.target.parentElement.classList.add("checked")
-                return
-            }
-            e.target.parentElement.classList.remove("checked")
-        })
-    })
-    formSearch[0].addEventListener("click", e => {
-        if (e.target.name == "category") {
-            let checkboxTarget = e.target
-            if (checkboxTarget == ckeckAllCategories) {
-                checks.forEach(check => check.checked = false)
-                ckeckAllCategories.checked = true
-                return
-            }
-            if (checkContainers.some(checkContainer => checkContainer.firstElementChild.checked)) {
-                ckeckAllCategories.checked = false
-                return
-            }
-            ckeckAllCategories.checked = true
-        }
-    })
-    if (checkedCategories && checkedCategories != ["all"] || searchText) {
-        setLocalValues(checks, checkedCategories, search, searchText)
+    if (checkedCategories.length > 0 || searchText) {
+        setLocalValues(checks, ckeckAllCategories, checkedCategories, search, searchText)
         printFilterCards(inputsContainer,dataInit)
     } else {
         localStorage.setItem("checkedCategories", JSON.stringify([]))
@@ -207,7 +192,7 @@ function formSearchEvents(dataInit) {
 function createCardDetails(id,dataInit) {
     let eventInfo = dataInit.events.find(event => event._id == id)
     let card = document.createElement("div")
-    let pastOrUp = timeEvent(dataInit.currentDate, eventInfo)
+    let pastOrUp = pastEvent(dataInit.currentDate, eventInfo)
     pastOrUp? pastOrUp = ["e-past","Assistance"]: pastOrUp = ["e-upcoming","Estimate"]
     card.className = `container-xl d-flex card flex-row flex-wrap mb-4 p-0 ${pastOrUp[0]} event-card m-md-5 m-lg-0 mb-lg-4 align-items-center`
     card.innerHTML =
@@ -280,8 +265,8 @@ function renderDetails (dataInit) {
 //STATS
 async function renderStats(dataInit) {
     await createTableStats(document.getElementById("tableStats1"),dataInit)
-    await createTableStatsCatg(document.getElementById("tableStats2"), dataInit,false)
-    await createTableStatsCatg(document.getElementById("tableStats3"), dataInit,true)
+    await createTableStatsCatg(document.getElementById("tableStats2"), dataInit.events.filter(event => !pastEvent(dataInit.currentDate, event)),dataInit.currentDate)
+    await createTableStatsCatg(document.getElementById("tableStats3"), dataInit.events.filter(event => pastEvent(dataInit.currentDate, event)),dataInit.currentDate)
 }
 function pluralStringArray(str, separator) {
     let array
@@ -345,17 +330,14 @@ async function createTableStats(tbody, data) {
     <td class="stats-dt fs-7">${eventsSelected.largest.name}: ${eventsSelected.largest.capacity}</td>`
     tbody.appendChild(tableRowStats)
 }
-async function eventsStatisticsCatg(data, pastOrUp) {
-    let eventsSelected
-    pastOrUp ? eventsSelected = data.events.filter(event => timeEvent(data.currentDate, event))
-    : eventsSelected = data.events.filter(event => !timeEvent(data.currentDate, event))
-    let categories = filterCategories(eventsSelected)
+async function eventsStatisticsCatg(events,currentDate) {
+    let categories = filterCategories(events)
     let revenues = []
     let categoriesPer = []
     let attendance
-    pastOrUp? attendance = "assistance": attendance = "estimate"
+    pastEvent(currentDate,events[0])? attendance = "assistance": attendance = "estimate"
     categories.forEach(category => {
-        let categoryRevenues = eventsSelected.reduce((revenues, event) => { 
+        let categoryRevenues = events.reduce((revenues, event) => { 
             if (event.category.toLowerCase() == category.toLowerCase()) {
                 revenues += parseInt(event[attendance]) * event.price
             }
@@ -363,7 +345,7 @@ async function eventsStatisticsCatg(data, pastOrUp) {
     }, 0)
         revenues.push(categoryRevenues)
         let eventsCount = 0
-        let categoryPer = eventsSelected.reduce((percentage, event) => {
+        let categoryPer = events.reduce((percentage, event) => {
             if (event.category.toLowerCase() == category.toLowerCase()) {
                 eventsCount++
                 percentage += percentageOfAttndce(event)
@@ -375,8 +357,8 @@ async function eventsStatisticsCatg(data, pastOrUp) {
     })
     return {categories:categories,revenues:revenues,percentage:categoriesPer}
 }
-async function createTableStatsCatg(tbody, data,pastOrUp) {
-    let categoriesSelected = await eventsStatisticsCatg(data, pastOrUp)
+async function createTableStatsCatg(tbody, events,currentDate) {
+    let categoriesSelected = await eventsStatisticsCatg(events,currentDate)
     categoriesSelected.categories.forEach((category, index) => {
         let tableRow = document.createElement("tr")
         tableRow.innerHTML =
@@ -387,14 +369,16 @@ async function createTableStatsCatg(tbody, data,pastOrUp) {
     })
 }
 //Local Storage
-async function setLocalValues(checks,checkedCategories, search,searchText) {
+async function setLocalValues(checks,checkAllCategories,checkedCategories, search,searchText) {
     if(checkedCategories.length > 0){
+        checkAllCategories.checked=false
         checks.forEach(check => {
             checkedCategories.includes(check.value.toLowerCase()) ?
                 check.checked = true :
                 check.checked = false
         })
-        if(checks.every(check=> !check.checked)){checks[0].checked=true}
+    } else {
+        checkAllCategories.checked=true
     }
     if (searchText) {
         search.value = searchText
